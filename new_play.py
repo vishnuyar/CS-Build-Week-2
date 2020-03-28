@@ -53,8 +53,8 @@ def move_known_room(direction,room_no,cooldown):
 
 
 def visit_current_room(rooms,directions,cooldown):
-    for i in range(len(directions)):
-        room_no, cooldown = move_known_room(direction[i],rooms[i+1],cooldown)
+    for i in range(1,len(directions)):
+        room_no, cooldown = move_known_room(direction[i],rooms[i],cooldown)
         print(f'In room:{room_no}')
 
 
@@ -71,10 +71,12 @@ def path_to_current_room(oldroom,newroom):
     paths = []
     visited = set()
     bft_queue = Queue()
-    direction_path = []
+    direction_queue = Queue()
+    direction_queue.enqueue([None])
     bft_queue.enqueue([oldroom])
     while bft_queue.size() > 0:
         vertex_path = bft_queue.dequeue()
+        direction_path = direction_queue.dequeue()
         vertex = vertex_path[-1]
         if vertex not in visited:
             visited.add(vertex)
@@ -86,6 +88,7 @@ def path_to_current_room(oldroom,newroom):
                 room_no = room_dict[vertex][direction]
                 path_copy.append(room_no)
                 direction_copy.append(direction)
+                direction_queue.enqueue(direction_copy)
                 bft_queue.enqueue(path_copy)
 
 #Doing a breadth first traversal
