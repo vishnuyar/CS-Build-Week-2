@@ -12,6 +12,7 @@ HOST = "https://lambda-treasure-hunt.herokuapp.com/api/adv/"
 
 GAME_INIT_get = HOST+'init/'
 MOVEMENT = HOST+'move/'
+DASH = HOST + 'dash/'
 
 visit_list = []
 room_dict = {}
@@ -33,10 +34,9 @@ def get_room_details(direction,cooldown):
     data_direction = {}
     data_direction['direction'] = direction
     data = json.dumps(data_direction)
-    #print("data",data)
     r = requests.post(MOVEMENT, data=data, headers=headers)
-    print('get room',r.text)
     room_details = json.loads(r.text)
+    print(f'moving {direction} got {room_details["room_id"]}')
     return room_details
 
 def move_known_room(direction,room_no,cooldown):
@@ -45,17 +45,45 @@ def move_known_room(direction,room_no,cooldown):
     data_direction['direction'] = direction
     data_direction['next_room_id'] = str(room_no)
     data = json.dumps(data_direction)
-    print('move room data',data)
     r = requests.post(MOVEMENT,data=data, headers=headers)
-    #print('move room',r.text)
     room_details = json.loads(r.text)
+    print(f'moved {direction} to room {room_details["room_id"]}')
     return room_details['room_id'],room_details['cooldown']
+
+def get_dash_results(moving_list):
+    result_list = []
+    current = moving_list[0]
+    count = 0
+    for value in moving_list:
+        if value == current:
+            count += 1
+        else:
+            result_list.append((current, count))
+            current = value
+            count = 1
+    result_list.append((current, count))
+    return result_list
+
+def move_dash_rooms(direction,no_rooms,rooms_list):
+    data_direction = {"direction":direction, "num_rooms":str(number), "next_room_ids":str(rooms[i:i+number])}
+    data = json.dumps(data_direction)
+    r = requests.post(DASH,data=data, headers=headers)
+    room_details = json.loads(r.text)
+    print(f'dash moved {direction} to room {room_details["room_id"]}')
+    return room_details['room_id'],room_details['cooldown']        
 
 
 def visit_current_room(rooms,directions,cooldown):
-    for i in range(1,len(directions)):
-        room_no, cooldown = move_known_room(directions[i],rooms[i],cooldown)
-        print(f'In room:{room_no}')
+    dash_results = get_dash_results(rooms,directions)
+    for result in dash_results:
+        direction, number = result
+        if number == 1:
+            room_no,cooldown = move_known_room(direction,rooms[i],cooldown)
+            i += 1
+        else:
+            room_no,cooldown = move_dash_rooms(direction,number,rooms[i:i+number])
+            i += number
+    return room_no, cooldown
 
 
 def add_directions_dict(room):
@@ -92,47 +120,69 @@ def path_to_current_room(oldroom,newroom):
                     direction_queue.enqueue(direction_copy)
                     bft_queue.enqueue(path_copy)
 
-#Doing a breadth first traversal
+#Doing a depth first traversal
 visited = []
 room_dict = {}
-room_queue = Queue()
+room_queue = []
 room_no = response['room_id']
 previous_room = None
 #create directions for response received
 room = add_directions_dict(response)
 #Add the response to the room dictionary
 room_dict[room_no] = room
-room_queue.enqueue(room_no)
-while room_queue.size() > 0:
-    room_no = room_queue.dequeue()
+room_queue.append(room_no)
+while len(room_queue) > 0:
+    room_no = room_queue.pop()
     if room_no not in visited:
         visited.append(room_no)
         print('Room in visited',room_no)
         if previous_room:
-            #get direction to move from previous room to current room
-            rooms_list,direction_list = path_to_current_room(previous_room,room_no)
-            print(f'rooms list:{rooms_list}')
-            print(f'directions list:{direction_list}')
-            visit_current_room(rooms_list,direction_list,cooldown)
+            if previous_room != room_no:
+                #get direction to move from previous room to current room
+                rooms_list,direction_list = path_to_current_room(previous_room,room_no)
+                
+                #removing the first items from both
+                rooms_list.pop(0)
+                direction_list.pop(0)
+                print(f'rooms list:{rooms_list}')
+                print(f'directions list:{direction_list}')
+                #Move to the current room
+                previous_room,cooldown = visit_current_room(rooms_list,direction_list,cooldown)
 
-        #check if all the directions have been visited
+        #Get only the directions to be visited
+        visit_directions = []
         for direction in room_dict[room_no]['exits']:
-            if direction in room_dict[room_no].keys():
-                if room_dict[room_no][direction] is None:
-                    #go to the direction get the room details
-                    room_details = get_room_details(direction,cooldown)
-                    #add directions to room details
-                    room = add_directions_dict(room_details)
-                    new_room_no = room['room_id']
-                    #add this room to the room dict
-                    room_dict[new_room_no] = room
-                    #assign directions to rooms
-                    assign_direction(room_no,new_room_no,direction)
-                    #add the room to the queue
-                    room_queue.enqueue(new_room_no)
-                    #go back to previous room
-                    previous_room,cooldown = move_known_room(opposites[direction],room_no,room['cooldown'])
+            if room_dict[room_no][direction] is None:
+                visit_directions.append(direction)
+        total_d = len(visit_directions)
+        for i,direction in enumerate(visit_directions):
+            #go to the direction get the room details
+            room_details = get_room_details(direction,cooldown)
+            #add directions to room details
+            room = add_directions_dict(room_details)
+            new_room_no = room['room_id']
+            #add this room to the room dict
+            room_dict[new_room_no] = room
+            #assign directions to rooms
+            assign_direction(room_no,new_room_no,direction)
+            #add the room to the queue
+            room_queue.append(new_room_no)
+            #go back to previous room only if it is not the last room
+            if i <  (total_d - 1):
+                previous_room,cooldown = move_known_room(opposites[direction],room_no,room['cooldown'])
+            else:
+                previous_room = new_room_no
+                cooldown = 100
         #write to file
         with open('room_graphs.txt','a+') as room_file:
             room_file.write(str(room_dict[room_no]))
             room_file.write("\n")
+        with open('room_dict.txt','w') as room_file:
+            room_file.write(str(room_dict))
+        with open('room_queue.txt','w') as room_file:
+            
+            room_q = []
+            for room in room_queue:
+                room_q.append(room)
+            room_file.write(str(room_q))
+            
