@@ -1,0 +1,3 @@
+{'room_id': 63, 'title': 'A Dark Room', 'description': 'You cannot see anything.', 'coordinates': '(60,64)', 'exits': ['n', 's', 'w'], 'cooldown': 1.0, 'errors': [], 'messages': [], 'n': 72, 's': 20, 'w': 73}
+{'room_id': 73, 'title': 'A Dark Room', 'description': 'You cannot see anything.', 'coordinates': '(59,64)', 'exits': ['e'], 'cooldown': 100.0, 'errors': [], 'messages': ['You have walked west.'], 'e': 63}
+{'room_id': 20, 'title': 'A Dark Room', 'description': 'You cannot see anything.', 'coordinates': '(60,63)', 'exits': ['n', 's', 'e', 'w'], 'cooldown': 100.0, 'errors': [], 'messages': ['You have walked south.'], 'n': 63, 's': 73, 'e': 63, 'w': 73}
