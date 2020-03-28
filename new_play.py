@@ -47,14 +47,14 @@ def move_known_room(direction,room_no,cooldown):
     data = json.dumps(data_direction)
     print('move room data',data)
     r = requests.post(MOVEMENT,data=data, headers=headers)
-    print('move room',r.text)
+    #print('move room',r.text)
     room_details = json.loads(r.text)
     return room_details['room_id'],room_details['cooldown']
 
 
 def visit_current_room(rooms,directions,cooldown):
     for i in range(1,len(directions)):
-        room_no, cooldown = move_known_room(direction[i],rooms[i],cooldown)
+        room_no, cooldown = move_known_room(directions[i],rooms[i],cooldown)
         print(f'In room:{room_no}')
 
 
@@ -82,14 +82,15 @@ def path_to_current_room(oldroom,newroom):
             visited.add(vertex)
             if vertex == newroom:
                 return vertex_path,direction_path
-            for direction in room_dict[vertex]['exits']:
-                path_copy = vertex_path.copy()
-                direction_copy = direction_path.copy()
-                room_no = room_dict[vertex][direction]
-                path_copy.append(room_no)
-                direction_copy.append(direction)
-                direction_queue.enqueue(direction_copy)
-                bft_queue.enqueue(path_copy)
+            if vertex in room_dict.keys():
+                for direction in room_dict[vertex]['exits']:
+                    path_copy = vertex_path.copy()
+                    direction_copy = direction_path.copy()
+                    room_no = room_dict[vertex][direction]
+                    path_copy.append(room_no)
+                    direction_copy.append(direction)
+                    direction_queue.enqueue(direction_copy)
+                    bft_queue.enqueue(path_copy)
 
 #Doing a breadth first traversal
 visited = []
@@ -106,6 +107,7 @@ while room_queue.size() > 0:
     room_no = room_queue.dequeue()
     if room_no not in visited:
         visited.append(room_no)
+        print('Room in visited',room_no)
         if previous_room:
             #get direction to move from previous room to current room
             rooms_list,direction_list = path_to_current_room(previous_room,room_no)
