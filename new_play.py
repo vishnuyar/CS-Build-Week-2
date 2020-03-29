@@ -64,25 +64,34 @@ def get_dash_results(moving_list):
     result_list.append((current, count))
     return result_list
 
-def move_dash_rooms(direction,no_rooms,rooms_list):
-    data_direction = {"direction":direction, "num_rooms":str(number), "next_room_ids":str(rooms[i:i+number])}
+def move_dash_rooms(direction,no_rooms,rooms_list,cooldown):
+    time.sleep(cooldown+1)
+    data_direction = {"direction":direction, "num_rooms":str(no_rooms), "next_room_ids":str(rooms_list)}
     data = json.dumps(data_direction)
     r = requests.post(DASH,data=data, headers=headers)
     room_details = json.loads(r.text)
     print(f'dash moved {direction} to room {room_details["room_id"]}')
     return room_details['room_id'],room_details['cooldown']        
+        
 
 
-def visit_current_room(rooms,directions,cooldown):
-    dash_results = get_dash_results(rooms,directions)
+def dash_current_room(rooms,directions,cooldown):
+    dash_results = get_dash_results(directions)
+    i=0
     for result in dash_results:
         direction, number = result
         if number == 1:
             room_no,cooldown = move_known_room(direction,rooms[i],cooldown)
             i += 1
         else:
-            room_no,cooldown = move_dash_rooms(direction,number,rooms[i:i+number])
+            room_no,cooldown = move_dash_rooms(direction,number,rooms[i:i+number],cooldown)
             i += number
+    return room_no, cooldown
+
+def visit_current_room(rooms,directions,cooldown):
+    for i in range(len(directions)):
+        room_no, cooldown = move_known_room(directions[i],rooms[i],cooldown)
+        print(f'In room:{room_no}')
     return room_no, cooldown
 
 
@@ -172,7 +181,7 @@ while len(room_queue) > 0:
                 previous_room,cooldown = move_known_room(opposites[direction],room_no,room['cooldown'])
             else:
                 previous_room = new_room_no
-                cooldown = 100
+                cooldown = 110
         #write to file
         with open('room_graphs.txt','a+') as room_file:
             room_file.write(str(room_dict[room_no]))
