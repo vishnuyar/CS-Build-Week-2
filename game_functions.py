@@ -5,6 +5,7 @@ import json
 import time
 from datetime import datetime
 import random
+from util import Stack,Queue
 
 def path_to_current_room(oldroom,newroom,room_dict):
     paths = []
@@ -89,12 +90,16 @@ def visit_current_room(rooms,directions,cooldown,headers,visit_url):
 
 def visit_using_dash(oldroom,newroom,room_dict,cooldown,headers,list_urls):
     room_path,direction_path  = path_to_current_room(oldroom,newroom,room_dict)
+    room_path.pop(0)
+    direction_path.pop(0)
     response,cooldown = dash_current_room(room_path,direction_path,cooldown,headers,list_urls)
     return response,cooldown
 
 
 def visit_using_normal(oldroom,newroom,room_dict,cooldown,headers,visit_url):
     room_path,direction_path  = path_to_current_room(oldroom,newroom,room_dict)
+    room_path.pop(0)
+    direction_path.pop(0)
     response,cooldown = visit_current_room(room_path,direction_path,cooldown,headers,visit_url)
     return response,cooldown
 

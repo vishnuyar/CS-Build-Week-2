@@ -28,30 +28,16 @@ def path_to_current_room(oldroom,newroom,room_dict):
                         direction_queue.enqueue(direction_copy)
                         bft_queue.enqueue(path_copy) 
 
+
 with open('room_dict (copy).txt') as room_data:
     for line in room_data:
        room_dict = ast.literal_eval(line)
     #print(room_dict)
 
+#print(room_dict[28])
 
-with open('room_queue (copy).txt') as room_data:
-    for line in room_data:
-       room_queue = ast.literal_eval(line)
-print(f'Rooms in queue:{len(room_queue)}')
-
-visited = []
-with open('room_graphs (copy).txt') as room_data:
-    for line in room_data:
-       room_data = ast.literal_eval(line)
-       room_no = room_data['room_id']
-       visited.append(room_no)
+#print(room_dict[397])
 
 
-for room_to in room_queue:
-    if room_to not in visited:
-        room_from = 211
-        print(f'path from {room_from} to {room_to} {path_to_current_room(room_from,room_to,room_dict)}')
-
-room_from = 211
-room_to = 137
-print(f'path from {room_from} to {room_to} {path_to_current_room(room_from,room_to,room_dict)}')
+room_from,room_to = input("From room -  To room with one space ").split()
+print(f'path from {room_from} to {room_to} {path_to_current_room(int(room_from),int(room_to),room_dict)}')

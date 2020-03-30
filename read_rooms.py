@@ -154,7 +154,7 @@ def path_to_current_room(oldroom,newroom):
 # room_no = response['room_id']
 
 #Always change based on where it stopped
-previous_room = 211
+previous_room = 37
 #create directions for response received
 #room = add_directions_dict(response)
 #Add the response to the room dictionary
@@ -202,7 +202,7 @@ while len(room_queue) > 0:
                 previous_room,cooldown = move_known_room(opposites[direction],room_no,room['cooldown'])
             else:
                 previous_room = new_room_no
-                cooldown = 110
+                cooldown = 15
         #write to file
         with open('room_graphs.txt','a+') as room_file:
             room_file.write(str(room_dict[room_no]))

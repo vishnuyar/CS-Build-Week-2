@@ -31,15 +31,15 @@ print(f'not visited number:{len(no_visits)}')
 
 
 
-# with open('room_queue (copy).txt') as room_data:
-#     for line in room_data:
-#        room_queue = ast.literal_eval(line)
-# print(f'Rooms in queue:{len(room_queue)}')
+with open('room_queue (copy).txt') as room_data:
+    for line in room_data:
+       room_queue = ast.literal_eval(line)
+print(f'Rooms in queue:{len(room_queue)}')
 
-# for room in room_queue:
-#     print(room)
-#     if room in visited:
-#         print(f'{room} is visited')
+for room in room_queue:
+    print(room)
+    if room in visited:
+        print(f'{room} is visited')
 
 # old_dict = {'room_id': 336, 'title': 'A misty room', 'description': 'You are standing on grass and surrounded by a dense mist. You can barely make out the exits in any direction.', 'coordinates': '(62,74)', 'elevation': 0, 'terrain': 'NORMAL', 'players': [], 'items': ['tiny treasure'], 'exits': ['s'], 'cooldown': 15.0, 'errors': [], 'messages': ['You have walked north.'],'s':23,'w':56,'n':21}
 
