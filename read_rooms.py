@@ -154,7 +154,7 @@ def path_to_current_room(oldroom,newroom):
 # room_no = response['room_id']
 
 #Always change based on where it stopped
-previous_room = None
+previous_room = 211
 #create directions for response received
 #room = add_directions_dict(response)
 #Add the response to the room dictionary
