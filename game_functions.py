@@ -41,6 +41,7 @@ def move_known_room(direction,room_no,cooldown,headers,visit_url):
     r = requests.post(visit_url,data=data, headers=headers)
     room_details = json.loads(r.text)
     print(f'moved {direction} to room {room_details["room_id"]}')
+    print('normal move',room_details)
     return room_details,room_details['cooldown']
 
 def get_dash_results(moving_list):
@@ -59,17 +60,21 @@ def get_dash_results(moving_list):
 
 def move_dash_rooms(direction,no_rooms,rooms_list,cooldown,headers,visit_url):
     time.sleep(cooldown+1)
-    data_direction = {"direction":direction, "num_rooms":str(no_rooms), "next_room_ids":str(rooms_list)}
+    rs = str(rooms_list).replace('[','').replace(']','').replace(' ','')
+    data_direction = {"direction":direction, "num_rooms":str(no_rooms), "next_room_ids":rs}
     data = json.dumps(data_direction)
+    #print(f'dash data:{data}')
     r = requests.post(visit_url,data=data, headers=headers)
     room_details = json.loads(r.text)
     print(f'dash moved {direction} to room {room_details["room_id"]}')
+    print('dash move',room_details)
     return room_details,room_details['cooldown']        
         
 
 
 def dash_current_room(rooms,directions,cooldown,headers,list_urls):
     dash_results = get_dash_results(directions)
+    print(f'dash_results:{dash_results}')
     i=0
     for result in dash_results:
         direction, number = result
@@ -92,6 +97,9 @@ def visit_using_dash(oldroom,newroom,room_dict,cooldown,headers,list_urls):
     room_path,direction_path  = path_to_current_room(oldroom,newroom,room_dict)
     room_path.pop(0)
     direction_path.pop(0)
+    # print(len(direction_path))
+    # print(room_path)
+    # print(direction_path)
     response,cooldown = dash_current_room(room_path,direction_path,cooldown,headers,list_urls)
     return response,cooldown
 

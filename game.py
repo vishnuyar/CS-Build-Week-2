@@ -58,7 +58,7 @@ def get_room_details(direction,cooldown):
 def do_action(cooldown,visiturl,data,actiontype='POST'):
     time.sleep(cooldown+0.25)
     if actiontype == 'GET':
-        r = requests.get(visiturl)
+        r = requests.get(visiturl,headers=HEADERS)
     else:
         r = requests.post(visiturl,data=data,headers=HEADERS)
     response = json.loads(r.text)
@@ -111,15 +111,17 @@ if r.status_code == 200:
     cooldown = response['cooldown']
     rooms_visited.add(player_room)
     print(f'you are in room:{player_room} \n {response}')
+else:
+    print('error init',r.text)
 
 while True:
     player_input = input('What is your next move ? ')
-    endtime = datetime.now()
+    end_time = datetime.now()
     timediff = (end_time - start_time).total_seconds()
-        if timediff > cooldown:
-            cooldown = 0
-        else:
-            cooldown -= timediff
+    if timediff > cooldown:
+        cooldown = 0
+    else:
+        cooldown -= timediff
     if player_input in ['n','s','e','w']:
         room_name = room_dict[player_room][player_input]
         data_direction = {}
@@ -222,9 +224,15 @@ while True:
     elif player_input.startswith('name'):
         #get the treasure name
         treasure_name = player_input.replace('name ','')
-        data = json.dumps({'name':treasure_name})
-        r = requests.post(CHANGE_NAME,data)
+        data = json.dumps({'name':[treasure_name]})
+        print(data)
+        response,cooldown = do_action(cooldown,CHANGE_NAME,data)
         print(f'change name response:{response}')
+        sell_response = input('Your decision? ')
+        if sell_response == 'yes':
+            data = json.dumps({'name':[treasure_name],'confirm':'aye'})
+            response,cooldown = do_action(cooldown,CHANGE_NAME,data)
+            print(f'Response from changing name:{response}')
     
     elif player_input == 'pray':
         response,cooldown = do_action(cooldown,PRAY,None)
@@ -236,6 +244,7 @@ while True:
         data = json.dumps({'name':treasure_name})
         response,cooldown = do_action(cooldown,CARRY_ITEM,data)
         print(f'carry item response:{response}')
+
     
     elif player_input == 'receive':
         response,cooldown = do_action(cooldown,RECEIVE_ITEM,None)
@@ -264,7 +273,7 @@ while True:
         print(f'recall response:{response}')
 
     elif player_input == 'balance':
-        response,cooldown = do_action(cooldown,COINS_BALANCE_get, actiontype='GET')
+        response,cooldown = do_action(cooldown,COINS_BALANCE_get,None, actiontype='GET')
         print(f'balance response:{response}')
 
     elif player_input.startswith('trans'):
@@ -275,27 +284,28 @@ while True:
         print(f'Transmorgify response:{response}')
 
     elif player_input == 'proof':
-        response,cooldown = do_action(cooldown,PROOF_get,actiontype='GET')
+        response,cooldown = do_action(cooldown,PROOF_get,None,actiontype='GET')
         
         proof_difficulty = response['difficulty']
         current_proof = response['proof']
         print(f'balance response:{response}')
 
     elif player_input == 'mine':
-        response,cooldown = do_action(cooldown,PROOF_get,actiontype='GET')
+        response,cooldown = do_action(cooldown,PROOF_get,None,actiontype='GET')
         start_time = datetime.now()
         proof_difficulty = response['difficulty']
         current_proof = response['proof']
         print(f'balance response:{response}')
         new_proof = get_new_proof(current_proof,proof_difficulty)
-        data = json.loads({'proof':new_proof})
+        print(f'proof:{new_proof}')
+        data = json.dumps({'proof':new_proof})
         endtime = datetime.now()
         timediff = (end_time - start_time).total_seconds()
         if timediff > cooldown:
             cooldown = 0
         else:
             cooldown -= timediff
-        cooldown = cooldown - (endtime - start_time)
+        
         response,cooldown = do_action(cooldown,MINE_COINS,data)
         print(f'Mine response:{response}')
 
@@ -303,7 +313,7 @@ while True:
     elif player_input.startswith('dash'):
         #get the treasure name
         treasure_name = int(player_input.split()[1])
-        response,cooldown = visit_using_dash(player_room,room_name,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+        response,cooldown = visit_using_dash(player_room,treasure_name,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
         previous_room = player_room
         player_room = response['room_id']
         #replace the room dict with new details
