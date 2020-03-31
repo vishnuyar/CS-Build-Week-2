@@ -47,12 +47,21 @@ def get_room_details(direction,cooldown):
     data_direction = {}
     data_direction['direction'] = direction
     data = json.dumps(data_direction)
-    r = requests.post(MOVEMENT, data=data, headers=headers)
+    r = requests.post(MOVEMENT, data=data, headers=HEADERS)
+    #print(r)
     room_details = json.loads(r.text)
     cooldown = room_details['cooldown']
     print(f'moving {direction} got {room_details["room_id"]}')
     return room_details,cooldown
 
+def add_directions_dict(room):
+    for direction in room['exits']:
+        room[direction] = None
+    return room
+
+def assign_direction(room_a,room_b,direction):
+    room_dict[room_a][direction] = room_b
+    room_dict[room_b][opposites[direction]] = room_a
 
 
 def do_action(cooldown,visiturl,data,actiontype='POST'):
@@ -68,7 +77,7 @@ def do_action(cooldown,visiturl,data,actiontype='POST'):
 
 
 # Load the room dictionary
-with open('room_dict.txt') as room_data:
+with open('live_room_dict.txt') as room_data:
     for line in room_data:
        room_dict = ast.literal_eval(line)
     #print(room_dict)
@@ -79,7 +88,7 @@ print(f'No of rooms in dict is {len(room_list)}')
 
 #Load a list of complete data rooms
 visited = []
-with open('room_graphs (copy).txt') as room_data:
+with open('room_lines.txt') as room_data:
     for line in room_data:
        room_data = ast.literal_eval(line)
        room_no = room_data['room_id']
@@ -110,7 +119,8 @@ if r.status_code == 200:
     player_room = response["room_id"]
     cooldown = response['cooldown']
     rooms_visited.add(player_room)
-    print(f'you are in room:{player_room} \n {response}')
+    print(room_dict[player_room])
+    #print(f'you are in room:{player_room} \n {response}')
 else:
     print('error init',r.text)
 
@@ -131,17 +141,20 @@ while True:
         room_details,cooldown = do_action(cooldown,MOVEMENT,data)
         previous_room = player_room
         player_room = room_details['room_id']
+        if player_room != room_name:
+            room_dict[previous_room][player_input] = None
         rooms_visited.add(player_room)
         if player_room in visited:
             
             #replace the room dict with new details
             room_dict[player_room].update(room_details)
-            print(f'The room response:{room_details}')
+            print(f'The room response:{room_dict[player_room]}')
             for direction in room_dict[player_room]['exits']:
                 print(f'{direction}:{room_dict[player_room][direction]}')
         else:
             room_dict[player_room].update(room_details)
             print(room_details)
+            player_room = room_details['room_id']
             print('take a walk')
         
     
@@ -313,22 +326,24 @@ while True:
     elif player_input.startswith('dash'):
         #get the treasure name
         treasure_name = int(player_input.split()[1])
-        response,cooldown = visit_using_dash(player_room,treasure_name,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+        response,cooldown,room_dict = visit_using_dash(player_room,treasure_name,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
         previous_room = player_room
         player_room = response['room_id']
         #replace the room dict with new details
         room_dict[player_room].update(response)
-        print(f'dash visit response:{response}')
+        rooms_visited.add(player_room)
+        #print(f'dash visit response:{response}')
     
     elif player_input.startswith('goto'):
         #get the treasure name
         room_name = int(player_input.split()[1])
-        response,cooldown = visit_using_normal(player_room,room_name,room_dict,cooldown,HEADERS,MOVEMENT)
+        response,cooldown,room_dict = visit_using_normal(player_room,room_name,room_dict,cooldown,HEADERS,MOVEMENT)
         previous_room = player_room
         player_room = response['room_id']
         #replace the room dict with new details
         room_dict[player_room].update(response)
-        print(f'normal visit response:{response}')
+        rooms_visited.add(player_room)
+        #print(f'normal visit response:{response}')
 
     elif player_input == 'show':
         print(f'you have visited {sorted(rooms_visited)}')
@@ -343,22 +358,30 @@ while True:
         for i,direction in enumerate(visit_directions):
             #go to the direction get the room details
             room_details,cooldown = get_room_details(direction,cooldown)
+            
             #add directions to room details
-            room = add_directions_dict(room_details)
-            new_room_no = room['room_id']
+            if room_details['room_id'] not in room_dict.keys():
+                room_dict[room_details['room_id']] = room_details
+                room_details = add_directions_dict(room_details)
+            new_room_no = room_details['room_id']
+            player_room = new_room_no
+            rooms_visited.add(player_room)
             #add this room to the room dict
-            room_dict[new_room_no].update(room)
+            room_dict[new_room_no].update(room_details)
+            print(room_dict[new_room_no])
             #assign directions to rooms
             assign_direction(room_no,new_room_no,direction)
             #add the room to the queue
             #go back to previous room only if it is not the last room
             if i <  (total_d - 1):
-                room_name = room_dict[player_room][player_input]
                 data_direction = {}
                 data_direction['direction'] = opposites[direction]
                 data_direction['next_room_id'] = str(room_no)
                 data = json.dumps(data_direction)
                 room_details,cooldown = do_action(cooldown,MOVEMENT,data)
+                
+                player_room = room_details['room_id']
+                rooms_visited.add(player_room)
                 
             
         

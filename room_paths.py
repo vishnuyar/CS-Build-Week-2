@@ -29,7 +29,7 @@ def path_to_current_room(oldroom,newroom,room_dict):
                         bft_queue.enqueue(path_copy) 
 
 
-with open('room_dict (copy).txt') as room_data:
+with open('live_room_dict.txt') as room_data:
     for line in room_data:
        room_dict = ast.literal_eval(line)
     #print(room_dict)
