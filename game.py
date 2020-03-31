@@ -51,8 +51,49 @@ def get_room_details(direction,cooldown):
     #print(r)
     room_details = json.loads(r.text)
     cooldown = room_details['cooldown']
-    print(f'moving {direction} got {room_details["room_id"]}')
+    #print(f'moving {direction} got {room_details["room_id"]}')
     return room_details,cooldown
+
+def send_for_walk(room_no,cooldown):
+    
+    visit_directions = []
+    for direction in room_dict[room_no]['exits']:
+        if room_dict[room_no][direction] is None:
+            visit_directions.append(direction)
+    total_d = len(visit_directions)
+    for i,direction in enumerate(visit_directions):
+        #go to the direction get the room details
+        room_details,cooldown = get_room_details(direction,cooldown)
+        
+        #add directions to room details
+        if room_details['room_id'] not in room_dict.keys():
+            room_dict[room_details['room_id']] = room_details
+            room_details = add_directions_dict(room_details)
+        new_room_no = room_details['room_id']
+        player_room = new_room_no
+        #rooms_visited.add(player_room)
+        #add this room to the room dict
+        room_dict[new_room_no].update(room_details)
+        
+        #assign directions to rooms
+        assign_direction(room_no,new_room_no,direction)
+        print(room_dict[new_room_no])
+        #add the room to the queue
+        #go back to previous room only if it is not the last room
+        if i <  (total_d - 1):
+            data_direction = {}
+            data_direction['direction'] = opposites[direction]
+            data_direction['next_room_id'] = str(room_no)
+            data = json.dumps(data_direction)
+            room_details,cooldown = do_action(cooldown,MOVEMENT,data)
+            
+            #player_room = room_details['room_id']
+            #rooms_visited.add(player_room)
+    with open('live_room_dict.txt','w') as room_file:
+        room_file.write(str(room_dict))
+    return new_room_no,cooldown
+
+
 
 def add_directions_dict(room):
     for direction in room['exits']:
@@ -152,6 +193,7 @@ while True:
             for direction in room_dict[player_room]['exits']:
                 print(f'{direction}:{room_dict[player_room][direction]}')
         else:
+            room_details = add_directions_dict(room_details)
             room_dict[player_room].update(room_details)
             print(room_details)
             player_room = room_details['room_id']
@@ -386,6 +428,36 @@ while True:
     elif player_input == 'show':
         print(f'you have visited {sorted(rooms_visited)}')
 
+    elif player_input.startswith('loopwalk'):
+        while True:
+            immediate_room = True
+            another_room = True
+            none_check = []
+            for direction in room_dict[player_room]['exits']:
+                none_check.append(room_dict[player_room][direction])
+
+            if None in none_check:
+                immediate_room = False
+                room_no, cooldown = send_for_walk(player_room,cooldown)
+                player_room = room_no 
+            if immediate_room:
+                for room in room_dict.keys():
+                    if room > 499:
+                        none_check = []
+                        for direction in room_dict[room]['exits']:
+                            #print(room)
+                            none_check.append(room_dict[room][direction])
+                        if None in none_check:
+                            response,cooldown,room_dict = visit_using_dash(player_room,room,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+                            player_room = response['room_id']
+                            another_room = False
+                            break
+            if immediate_room & another_room:
+                print('Loop walk completed')
+                break
+
+
+
     elif player_input.startswith('walk'):
         room_no = player_room
         visit_directions = []
@@ -406,9 +478,10 @@ while True:
             rooms_visited.add(player_room)
             #add this room to the room dict
             room_dict[new_room_no].update(room_details)
-            print(room_dict[new_room_no])
+            
             #assign directions to rooms
             assign_direction(room_no,new_room_no,direction)
+            print(room_dict[new_room_no])
             #add the room to the queue
             #go back to previous room only if it is not the last room
             if i <  (total_d - 1):
