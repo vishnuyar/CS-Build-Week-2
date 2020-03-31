@@ -2,50 +2,48 @@ import ast
 import json
 
 room_dict = {}
-visited = []
-with open('room_graphs (copy).txt') as room_data:
+
+with open('live_room_dict.txt','r') as room_data:
     for line in room_data:
-       room_data = ast.literal_eval(line)
-       room_no = room_data['room_id']
-       visited.append(room_no)
-print(f'Number of Visited Rooms:{len(visited)}')
+       room_dict = ast.literal_eval(line)
+    #print(room_dict)
 
-no_visits = []
-
-print(f'max:{max(visited)}')
-print(f'min:{min(visited)}')
-for i in range(0,500):
-    if i not in visited:
-        no_visits.append(i)
+visit_list = []
+for room in room_dict:
+    if room_dict[room]['description'] == 'You cannot see anything.':
+        visit_list.append(room_dict[room]['room_id'])
 
 
-print(f'not visited number:{len(no_visits)}')
-# with open('room_dict (copy).txt') as room_data:
-#     for line in room_data:
-#        room_dict = ast.literal_eval(line)
-#     #print(room_dict)
+# treasure_type = set()
+# for room in room_dict:
+#     check_type = 'description'
+#     if check_type in room_dict[room].keys():
+#     #print(room_dict[room]['description'])
+#         print(room_dict[room]['room_id'],':',room_dict[room][check_type])
+#         # for item in room_dict[room][check_type]:
+#         #     treasure_type.add(item)
+#         treasure_type.add(room_dict[room][check_type])
+#     else:
+#         print(room_dict[room]['room_id'],'****************************')
 
-# room_list = list(room_dict.keys())
+# print('**************************')
+# for item in treasure_type:
+#     print(item)
+# print('**************************')
+print(f'rooms to visit is:{len(visit_list)}')
 
-# print(f'No of rooms in dict is {len(room_list)}')
+#print(visit_list)
 
+with open('to_visit.txt','w') as room_data:
+    room_data.write(str(visit_list))
 
-
-with open('room_queue (copy).txt') as room_data:
+to_visit = []
+with open('to_visit.txt') as room_data:
     for line in room_data:
-       room_queue = ast.literal_eval(line)
-print(f'Rooms in queue:{len(room_queue)}')
+        to_visit = ast.literal_eval(line)
 
-for room in room_queue:
-    print(room)
-    if room in visited:
-        print(f'{room} is visited')
+# print(type(to_visit))
 
-# old_dict = {'room_id': 336, 'title': 'A misty room', 'description': 'You are standing on grass and surrounded by a dense mist. You can barely make out the exits in any direction.', 'coordinates': '(62,74)', 'elevation': 0, 'terrain': 'NORMAL', 'players': [], 'items': ['tiny treasure'], 'exits': ['s'], 'cooldown': 15.0, 'errors': [], 'messages': ['You have walked north.'],'s':23,'w':56,'n':21}
-
-# print(old_dict)
-# new_dict = {'room_id': 336, 'title': 'A misty room', 'description': 'You are standing on grass and surrounded by a dense mist. You can barely make out the exits in any direction.', 'coordinates': '(65,69)', 'elevation': 0, 'terrain': 'NORMAL', 'players': [], 'items': ['tiny treasure', 'tiny treasure'], 'exits': ['w'], 'cooldown': 15.0, 'errors': [], 'messages': ['You have walked east.'], 'w': 153}
-
-# old_dict.update(new_dict)
-
-# print(old_dict)
+# while len(to_visit)> 0:
+#     room = to_visit.pop(0)
+#     print(room)

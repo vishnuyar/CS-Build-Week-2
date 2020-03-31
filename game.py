@@ -6,7 +6,7 @@ from util import Stack
 import csv
 import time
 from datetime import datetime
-from game_functions import visit_using_dash,visit_using_normal,get_new_proof
+from game_functions import visit_using_dash,visit_using_normal,get_new_proof,path_to_current_room
 
 
 
@@ -168,17 +168,20 @@ while True:
         room_details,cooldown = do_action(cooldown,MOVEMENT,data)
         previous_room = player_room
         player_room = room_details['room_id']
+        if player_room != room_name:
+            room_dict[previous_room][player_input] = None
         rooms_visited.add(player_room)
         if player_room in visited:
             
             #replace the room dict with new details
             room_dict[player_room].update(room_details)
-            print(f'The room response:{room_details}')
+            print(f'The room response:{room_dict[player_room]}')
             for direction in room_dict[player_room]['exits']:
                 print(f'{direction}:{room_dict[player_room][direction]}')
         else:
             room_dict[player_room].update(room_details)
             print(room_details)
+            player_room = room_details['room_id']
             print('take a walk')
     
     elif player_input.startswith('take'):
@@ -334,6 +337,41 @@ while True:
         rooms_visited.add(player_room)
         #print(f'dash visit response:{response}')
     
+    
+    elif player_input == 'visit':
+        to_visit = []
+        with open('to_visit.txt') as room_data:
+            for line in room_data:
+                to_visit = ast.literal_eval(line)
+        while len(to_visit) > 0:
+            room_name = to_visit.pop(0)
+            room_path,direction_path  = path_to_current_room(player_room,room_name,room_dict)
+            room_path.pop(0)
+            direction_path.pop(0)
+            for i,room in enumerate(room_path):
+                data_direction = {}
+                data_direction['direction'] = direction_path[i]
+                data_direction['next_room_id'] = str(room)
+                data = json.dumps(data_direction)
+                room_details,cooldown = do_action(cooldown,MOVEMENT,data)
+                room_id = room_details['room_id']
+                room_dict[room_id].update(room_details)
+
+                #write the dict to file
+                with open('live_room_dict.txt','w') as room_file:
+                    room_file.write(str(room_dict))
+                
+                print(room_dict[room_id]['room_id'])
+                print(room_dict[room_id]['description'])
+                print("*****************************************")
+                if room_id in to_visit:
+                    to_visit.remove(room_id)
+            player_room = room_id
+            print(f'Left to traverse:{len(to_visit)}')
+            
+
+
+
     elif player_input.startswith('goto'):
         #get the treasure name
         room_name = int(player_input.split()[1])
