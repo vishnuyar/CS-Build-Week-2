@@ -7,17 +7,17 @@ with open('live_room_dict.txt','r') as room_data:
     for line in room_data:
        room_dict = ast.literal_eval(line)
     #print(room_dict)
-
-for room in room_dict.keys():
-    none_check = []
-    for direction in room_dict[room]['exits']:
-        #print(room)
-        none_check.append(room_dict[room][direction])
-    if None in none_check:
-        print(room)
-        player_room = room
-        another_room = True
-        break
+#print(len(room_dict))
+# for room in room_dict.keys():
+#     none_check = []
+#     for direction in room_dict[room]['exits']:
+#         #print(room)
+#         none_check.append(room_dict[room][direction])
+#     if None in none_check:
+#         print(room)
+#         player_room = room
+#         another_room = True
+#         break
 
 # visit_list = []
 # for room in room_dict:
@@ -25,23 +25,24 @@ for room in room_dict.keys():
 #         visit_list.append(room_dict[room]['room_id'])
 
 
-# treasure_type = set()
-# for room in room_dict:
-#     check_type = 'description'
-#     if check_type in room_dict[room].keys():
-#     #print(room_dict[room]['description'])
-#         print(room_dict[room]['room_id'],':',room_dict[room][check_type])
-#         # for item in room_dict[room][check_type]:
-#         #     treasure_type.add(item)
-#         treasure_type.add(room_dict[room][check_type])
-#     else:
-#         print(room_dict[room]['room_id'],'****************************')
+treasure_type = set()
+for room in room_dict:
+    check_type = 'items'
+    if room > 499:
+        if check_type in room_dict[room].keys():
+        #print(room_dict[room]['description'])
+            print(room_dict[room]['room_id'],':',room_dict[room][check_type])
+            for item in room_dict[room][check_type]:
+                treasure_type.add(item)
+                #treasure_type.add(room_dict[room][check_type])
+        else:
+            print(room_dict[room]['room_id'],'****************************')
 
-# print('**************************')
-# for item in treasure_type:
-#     print(item)
-# print('**************************')
-# print(f'rooms to visit is:{len(visit_list)}')
+print('**************************')
+for item in treasure_type:
+    print(item)
+print('**************************')
+#print(f'rooms to visit is:{len(visit_list)}')
 
 # #print(visit_list)
 

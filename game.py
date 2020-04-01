@@ -325,6 +325,7 @@ while True:
         
         response,cooldown = do_action(cooldown,WARP,None)
         print(f'warp response:{response}')
+        player_room = response['room_id']
 
     elif player_input == 'recall':
         response,cooldown = do_action(cooldown,RECALL,None)
