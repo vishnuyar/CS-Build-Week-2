@@ -295,11 +295,13 @@ while True:
                 if room_no != existing_room:
                     response,cooldown,room_dict = visit_using_dash(555,room_no,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
                     player_room = response['room_id']
-                    print('in room',player_room)
+                    #print('in room',player_room)
                     if 'golden snitch' in response['items']:
                         data = json.dumps({'name':'golden snitch'})
                         response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
                         print('snitch',response)
+                    else:
+                        print('Snitch lost to Competition')
                     #print(data)
                          
                     firsttime = True

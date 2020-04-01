@@ -27,13 +27,13 @@ with open('live_room_dict.txt','r') as room_data:
 
 treasure_type = set()
 for room in room_dict:
-    check_type = 'items'
+    check_type = 'elevation'
     if room > 499:
         if check_type in room_dict[room].keys():
         #print(room_dict[room]['description'])
             print(room_dict[room]['room_id'],':',room_dict[room][check_type])
-            for item in room_dict[room][check_type]:
-                treasure_type.add(item)
+            # for item in room_dict[room][check_type]:
+            #     treasure_type.add(item)
                 #treasure_type.add(room_dict[room][check_type])
         else:
             print(room_dict[room]['room_id'],'****************************')

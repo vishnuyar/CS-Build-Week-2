@@ -82,12 +82,12 @@ def dash_current_room(rooms,directions,cooldown,headers,list_urls,room_dict):
         if number == 1:
             room_no,cooldown = move_known_room(direction,rooms[i],cooldown,headers,list_urls[0])
             room_dict[room_no['room_id']].update(room_no)
-            print('normal move',room_dict[room_no['room_id']])
+            #print('normal move',room_dict[room_no['room_id']])
             i += 1
         else:
             room_no,cooldown = move_dash_rooms(direction,number,rooms[i:i+number],cooldown,headers,list_urls[1])
             room_dict[room_no['room_id']].update(room_no)
-            print('dash move',room_dict[room_no['room_id']])
+            #print('dash move',room_dict[room_no['room_id']])
             i += number
     return room_no, cooldown,room_dict
 
