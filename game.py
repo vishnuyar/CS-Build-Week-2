@@ -281,13 +281,13 @@ while True:
             treasure_name = player_input.replace('examine ','')
             data = json.dumps({'name':treasure_name})
             response,cooldown = do_action(cooldown,EXAMINE,data)
-            print(f'examine response:{response}')
+            #print(f'examine response:{response}')
             description = response['description']
             cpu = CPU()
             cpu.load(description)
             cpu.run()
             room_no = int(''.join(cpu.message[-3:]))
-            print(f'len:{cpu.message}:{cpu.message[-3:]},room:{room_no}')
+            print(f'snitch in room:{room_no}')
             if firsttime:
                 existing_room = room_no
                 firsttime = False
@@ -296,7 +296,7 @@ while True:
                     response,cooldown,room_dict = visit_using_dash(555,room_no,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
                     player_room = response['room_id']
                     print('in room',player_room)
-                    if response['items'] == 'golden snitch':
+                    if 'golden snitch' in response['items']:
                         data = json.dumps({'name':'golden snitch'})
                         response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
                         print('snitch',response)
