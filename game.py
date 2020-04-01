@@ -7,6 +7,7 @@ import csv
 import time
 from datetime import datetime
 from game_functions import visit_using_dash,visit_using_normal,get_new_proof,path_to_current_room
+from cpu import *
 
 
 
@@ -274,10 +275,36 @@ while True:
     
     elif player_input.startswith('examine'):
         #get the treasure name
-        treasure_name = player_input.replace('examine ','')
-        data = json.dumps({'name':treasure_name})
-        response,cooldown = do_action(cooldown,EXAMINE,data)
-        print(f'examine response:{response}')
+        firsttime = True
+        while True:
+            
+            treasure_name = player_input.replace('examine ','')
+            data = json.dumps({'name':treasure_name})
+            response,cooldown = do_action(cooldown,EXAMINE,data)
+            print(f'examine response:{response}')
+            description = response['description']
+            cpu = CPU()
+            cpu.load(description)
+            cpu.run()
+            room_no = int(''.join(cpu.message[-3:]))
+            print(f'len:{cpu.message}:{cpu.message[-3:]},room:{room_no}')
+            if firsttime:
+                existing_room = room_no
+                firsttime = False
+            else:
+                if room_no != existing_room:
+                    response,cooldown,room_dict = visit_using_dash(555,room_no,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+                    player_room = response['room_id']
+                    print('in room',player_room)
+                    if response['items'] == 'golden snitch':
+                        data = json.dumps({'name':'golden snitch'})
+                        response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
+                        print('snitch',response)
+                    #print(data)
+                         
+                    firsttime = True
+                    response,cooldown,room_dict = visit_using_dash(player_room,555,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+                
     
     elif player_input.startswith('name'):
         #get the treasure name
@@ -326,7 +353,9 @@ while True:
         response,cooldown = do_action(cooldown,WARP,None)
         print(f'warp response:{response}')
         player_room = response['room_id']
-
+    
+        
+        
     elif player_input == 'recall':
         response,cooldown = do_action(cooldown,RECALL,None)
         print(f'recall response:{response}')
