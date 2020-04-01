@@ -33,7 +33,7 @@ def path_to_current_room(oldroom,newroom,room_dict):
                     bft_queue.enqueue(path_copy)
 
 def move_known_room(direction,room_no,cooldown,headers,visit_url):
-    time.sleep(cooldown+1)
+    time.sleep(cooldown+0.1)
     data_direction = {}
     data_direction['direction'] = direction
     data_direction['next_room_id'] = str(room_no)
@@ -59,7 +59,7 @@ def get_dash_results(moving_list):
     return result_list
 
 def move_dash_rooms(direction,no_rooms,rooms_list,cooldown,headers,visit_url):
-    time.sleep(cooldown+1)
+    time.sleep(cooldown+0.1)
     rs = str(rooms_list).replace('[','').replace(']','').replace(' ','')
     data_direction = {"direction":direction, "num_rooms":str(no_rooms), "next_room_ids":rs}
     data = json.dumps(data_direction)

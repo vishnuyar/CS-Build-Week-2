@@ -44,7 +44,7 @@ opposites = {'n':'s','s':'n','w':'e','e':'w'}
 rooms_visited = set()
 
 def get_room_details(direction,cooldown):
-    time.sleep(cooldown+1)
+    time.sleep(cooldown+0.1)
     data_direction = {}
     data_direction['direction'] = direction
     data = json.dumps(data_direction)
@@ -107,7 +107,7 @@ def assign_direction(room_a,room_b,direction):
 
 
 def do_action(cooldown,visiturl,data,actiontype='POST'):
-    time.sleep(cooldown+0.25)
+    time.sleep(cooldown+0.1)
     if actiontype == 'GET':
         r = requests.get(visiturl,headers=HEADERS)
     else:
@@ -123,6 +123,19 @@ with open('live_room_dict.txt') as room_data:
     for line in room_data:
        room_dict = ast.literal_eval(line)
     #print(room_dict)
+
+# Load the snitch dictionary
+with open('snitchpath_dict.txt') as room_data:
+    for line in room_data:
+       to_snitch_path = ast.literal_eval(line)
+    #print(room_dict)
+
+# Load the wellpath dictionary
+with open('wellpath_dict.txt') as room_data:
+    for line in room_data:
+       to_well_path = ast.literal_eval(line)
+    #print(room_dict)
+
 
 room_list = list(room_dict.keys())
 
@@ -293,19 +306,25 @@ while True:
                 firsttime = False
             else:
                 if room_no != existing_room:
-                    response,cooldown,room_dict = visit_using_dash(555,room_no,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
-                    player_room = response['room_id']
-                    #print('in room',player_room)
-                    if 'golden snitch' in response['items']:
+                    if room_no != 555:
+                        response,cooldown,room_dict = visit_using_dash(555,room_no,room_dict,cooldown,HEADERS,[FLY,DASH])
+                        player_room = response['room_id']
+                        #print('in room',player_room)
+                        if 'golden snitch' in response['items']:
+                            data = json.dumps({'name':'golden snitch'})
+                            response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
+                            print('snitch',response)
+                        else:
+                            print('Snitch lost to Competition')
+                        response,cooldown,room_dict = visit_using_dash(player_room,555,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+                    else:
                         data = json.dumps({'name':'golden snitch'})
                         response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
                         print('snitch',response)
-                    else:
-                        print('Snitch lost to Competition')
                     #print(data)
                          
                     firsttime = True
-                    response,cooldown,room_dict = visit_using_dash(player_room,555,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+                    
                 
     
     elif player_input.startswith('name'):
