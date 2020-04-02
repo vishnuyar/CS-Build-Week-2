@@ -43,6 +43,22 @@ room_dict = {}
 opposites = {'n':'s','s':'n','w':'e','e':'w'}
 rooms_visited = set()
 
+
+def dash_dash(dash_results,rooms,cooldown):
+    i=0
+    for result in dash_results:
+        direction, number = result
+        if number == 1:
+            data = json.dumps({'direction':direction,'next_room_id':str(rooms[i])})
+            room_no,cooldown = do_action(cooldown,FLY,data)
+            i += 1
+        else:
+            rs = str(rooms[i:i+number]).replace('[','').replace(']','').replace(' ','')
+            data = json.dumps({"direction":direction, "num_rooms":str(number), "next_room_ids":rs})
+            room_no,cooldown = do_action(cooldown,DASH,data)
+            i += number
+    return room_no,cooldown
+
 def get_room_details(direction,cooldown):
     time.sleep(cooldown+0.1)
     data_direction = {}
@@ -139,7 +155,7 @@ with open('wellpath_dict.txt') as room_data:
 
 room_list = list(room_dict.keys())
 
-print(f'No of rooms in dict is {len(room_list)}')
+#print(f'No of rooms in dict is {len(room_list)}')
 
 #Load a list of complete data rooms
 visited = []
@@ -154,8 +170,8 @@ print(f'Number of Visited Rooms:{len(visited)}')
 with open('playervisits.txt') as room_data:
     for line in room_data:
        rooms_visited = ast.literal_eval(line)
-print(f'player Visited Rooms:{len(rooms_visited)}')      
-print(f'player Visited Rooms:{sorted(rooms_visited)}')
+#print(f'player Visited Rooms:{len(rooms_visited)}')      
+#print(f'player Visited Rooms:{sorted(rooms_visited)}')
 
 
 #Initialise and find the player's room
@@ -307,16 +323,24 @@ while True:
             else:
                 if room_no != existing_room:
                     if room_no != 555:
-                        response,cooldown,room_dict = visit_using_dash(555,room_no,room_dict,cooldown,HEADERS,[FLY,DASH])
+                        #Goto Snitch room
+                        dash_results = to_snitch_path[room_no]["dash"]
+                        rooms = to_snitch_path[room_no]["rooms"]
+                        response,cooldown = dash_dash(dash_results,rooms,cooldown)
                         player_room = response['room_id']
-                        #print('in room',player_room)
+                        print('in room',player_room)
                         if 'golden snitch' in response['items']:
                             data = json.dumps({'name':'golden snitch'})
                             response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
-                            print('snitch',response)
+                            print('snitch',response['messages'])
                         else:
                             print('Snitch lost to Competition')
-                        response,cooldown,room_dict = visit_using_dash(player_room,555,room_dict,cooldown,HEADERS,[MOVEMENT,DASH])
+                        #Go back to well
+                        dash_results = to_well_path[room_no]["dash"]
+                        rooms = to_well_path[room_no]["rooms"]
+                        response,cooldown = dash_dash(dash_results,rooms,cooldown)
+                        player_room = response['room_id']
+                        print('in room',player_room)
                     else:
                         data = json.dumps({'name':'golden snitch'})
                         response,cooldown = do_action(cooldown,TAKE_TREASURE,data)
